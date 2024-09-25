@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mapper는 테이블 별로 하나씩 만들 거다. namespace는 중복되면 안된다. -->
+<mapper namespace="com.picmap.app.ping.PingDAO">
+	<insert id="addPing" parameterType="PingDTO" >
+		INSERT INTO PING
+		VALUES
+		(#{pingNum}, #{longitude}, #{latitude}, #{address})
+	</insert>
+	
+	<update id="updatePing" parameterType="PingDTO" >
+		UPDATE PING
+		SET	LONGITUDE=#{longitude},
+			LATITUDE=#{latitude},
+			ADDRESS=#{address}
+		WHERE PINGNUM=#{pingNum}
+	</update>
+	
+	<select id="savePingNum" resultType="java.lang.Long">
+		SELECT PING_SEQ.NEXTVAL FROM DUAL
+	</select>
+
+	<select id="getPingList" parameterType="PingDTO"
+		resultType="PingDTO">
+		SELECT *
+		FROM(
+			SELECT BESTLIST.*, ROWNUM r
+			FROM(
+				SELECT		p.PINGNUM ,p.LONGITUDE, p.LATITUDE, p.ADDRESS, COUNT(p.PINGNUM) tc 
+				FROM		PING p LEFT JOIN TRAVEL t
+							ON p.PINGNUM = t.PINGNUM
+							INNER JOIN HEART h
+							ON t.BOARDNUM = h.BOARDNUM 
+				WHERE		p.ADDRESS LIKE '%'||#{address}||'%'
+							OR t.BOARDTITLE LIKE '%'||#{address}||'%'
+							OR t.BOARDCONTENT LIKE '%'||#{address}||'%'
+				GROUP BY 	p.PINGNUM, p.LONGITUDE, p.LATITUDE, p.ADDRESS
+				ORDER BY	tc DESC
+			)BESTLIST
+		)
+		WHERE 15 >= r
+	</select>
+	
+	<select id="getMyPingList" resultType="PingDTO">
+		SELECT	*
+		FROM	PING p
+		<where>
+			<foreach item="travelDTO" index="index" collection="list" open="PINGNUM IN (" separator="," close=")">
+				#{travelDTO.pingNum}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="getTravelList" resultType="TravelDTO">
+		SELECT	*
+		FROM 	(
+			SELECT 		ROWNUM r, t.*
+			FROM 		TRAVEL t
+			<where>
+				<foreach item="pingDTO" index="index" collection="list" open="PINGNUM IN (" separator="," close=")">
+					#{pingDTO.pingNum}
+				</foreach>
+			</where>
+		)
+		WHERE 15 >= r
+	</select>
+	
+	<select id="getRecommendList" parameterType="PingDTO" resultType="TravelDTO">
+		SELECT	*
+		FROM 	(
+			SELECT	ROWNUM r, reco.*
+			FROM 	(
+				SELECT		t.BOARDNUM, t.FILENAME, t.PINGNUM, COUNT(t.BOARDNUM) tc
+				FROM		TRAVEL t INNER JOIN HEART h
+							ON t.BOARDNUM = h.BOARDNUM 
+				WHERE		PINGNUM IN (
+						SELECT	PINGNUM
+						FROM	PING
+						WHERE	LATITUDE BETWEEN (#{latitude}-0.0088) AND (#{latitude}+0.0088)
+								AND LONGITUDE BETWEEN (#{longitude}-0.0112) AND (#{longitude}+0.0112)
+								AND PINGNUM NOT IN (#{pingNum})
+					)
+				GROUP BY	t.BOARDNUM, t.FILENAME, t.HIT, t.PINGNUM
+				ORDER BY	tc DESC, t.HIT DESC
+			) reco
+		)
+		WHERE 4 >= r
+	</select>
+	
+	<select id="getDetail" parameterType="PingDTO" resultType="PingDTO">
+		SELECT	*
+		FROM	PING
+		WHERE	PINGNUM = #{pingNum}
+	</select>
+	
+	<select id="getTravelDetail" parameterType="PingDTO" resultType="TravelDTO">
+		SELECT	t.BOARDNUM, t.FILENAME, t.PINGNUM
+		FROM	TRAVEL t
+		WHERE	PINGNUM = #{pingNum}
+	</select>
+ 
+</mapper>

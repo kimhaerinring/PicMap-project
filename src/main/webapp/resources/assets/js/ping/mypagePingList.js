@@ -1,0 +1,121 @@
+// 지번 검색 input
+const searchPing = document.getElementById("searchPing");
+// 검색 버튼
+const searchButton = document.getElementById("searchButton");
+
+const mypageBack = document.getElementById('mypageBack');
+
+var keywordMarkers;
+let mapCenter;
+
+// 커스텀오버레이를 담을 배열
+let customOverlays = [];
+
+// 지도 위에 표시되고 있는 커스텀오버레이를 모두 제거
+function removeCustomOverlay() {
+    for ( var i = 0; i < customOverlays.length; i++ ) {
+        customOverlays[i].setMap(null);
+    }   
+    customOverlays = [];
+}
+
+if(searchButton){
+    searchButton.addEventListener("click", () => {
+
+        // 지도 위에 표시되고 있는 커스텀오버레이를 모두 제거
+        removeCustomOverlay();
+
+        getPingList(searchPing.value);
+        
+    })
+}
+
+function getPingList() {
+    let searchForm = new FormData();
+    searchForm.append("memberNum", followerDiv.dataset.toFollow);
+    fetch('/ping/getMyPingList', {
+        method: "POST",
+        body: searchForm
+    })
+        .then(r => r.json())
+        .then(r => {
+            if (r.lat != 0.0 && r.travelList.length != 0) {
+                mypageBack.src = '';
+
+                document.getElementById('mapWrap').style.display = 'block';
+
+                var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+                mapOption = {
+                    //서울 시청 37.566826 126.9786567
+                    center: new kakao.maps.LatLng(36.71053726279515, 127.39318958702651), // 지도의 중심좌표
+                    level: 13 // 지도의 확대 레벨
+                };
+
+                // 지도를 생성합니다    
+                var map = new kakao.maps.Map(mapContainer, mapOption);
+
+                // 지도가 확대 또는 축소되면 마지막 파라미터로 넘어온 함수를 호출하도록 이벤트를 등록합니다
+                kakao.maps.event.addListener(map, 'zoom_changed', function() {        
+                    if(map.getLevel() == 14) map.setLevel(13);
+                });
+
+
+                // 검색 결과를 바탕으로 지도 중심 좌표 재설정
+                var bounds = new kakao.maps.LatLngBounds();
+                bounds.extend(new kakao.maps.LatLng(r.lat, r.lon));
+                map.setBounds(bounds);
+
+                // 지도 레벨(사이즈) 재설정
+                map.setLevel(r.level);
+
+                // 마커를 표시할 객체 배열
+                let positions = [];
+
+                // 검색된 게시글과 게시글에 해당되는 핑의 정보를 바탕으로 마커의 값 세팅
+                r.travelList.forEach(element => {
+                    let ping = r.pingMap[element.pingNum]; // 핑의 정보를 담는 변수 선언
+                    
+                    // 값 세팅
+                    let position = {
+                        title: element.boardTitle,
+                        latlng: new kakao.maps.LatLng(ping.latitude, ping.longitude),
+                        image: element.fileName == null ? '/resources/upload/travels/default.png' : '/resources/upload/travels/' + element.fileName,
+                        board: '/travel/detail?boardNum=' + element.boardNum
+                    };
+                    positions.push(position); // 배열에 추가
+                });
+
+                for (var i = 0; i < positions.length; i++) {
+
+                    let board = positions[i].board;
+
+                    var content =
+                    '<a href="' + board +'">' +
+                    '    <div class="d-flex align-items-center justify-content-center overflow-hidden"'+
+                    '         style="width:64px; height:64px; background-image: url(\'' + positions[i].image + '\'); background-size: cover; background-position: center center; border: 4px solid white; border-radius: var(--bs-border-radius-xl) !important;">' +
+                    '    </div>'+
+                    '</a>';
+
+                    var customOverlay = new kakao.maps.CustomOverlay({
+                        position: positions[i].latlng,
+                        content: content,
+                        xAnchor: 0,
+                        yAnchor: 1
+                    });
+
+                    customOverlay.setMap(map);
+                    customOverlays.push(customOverlay);
+
+                    map.relayout();
+                }
+
+            }
+        })
+        .catch((e) => {
+            alert("오류발생");
+            console.log(e);
+        })
+};
+
+
+getPingList();

@@ -1,0 +1,169 @@
+body {
+	margin-top: 60px;
+}
+
+
+.hero {
+	z-index: 200;
+}
+
+.header {
+	z-index: 999;
+}
+
+.footer {
+	z-index: 999;
+}
+
+.boardTitle {
+	margin-bottom: 40px;
+	text-align: center;
+}
+
+.boardTitle__title {
+	color: black;
+	line-height: 64px;
+	margin-top: 0;
+	margin-bottom: 0;
+	font-weight: 300;
+	z-index: 2;
+	position: relative;
+	font-size: 55px;
+	font-weight: bolder;
+}
+
+.boardContent {
+	margin: 0 auto;
+}
+
+.picture {
+	margin: 0 auto;
+	width: 1100px;
+	height: 618.75px;
+}
+
+.img-fluid {
+	width: 1100px;
+	height: 618.75px;
+	object-fit: contain;
+}
+
+.boardInfo {
+	margin: 0 auto;
+	max-width: 720px;
+	font-size: 18px;
+}
+
+.boardContent_text {
+	margin: 0 auto;
+	max-width: 720px;
+}
+
+#updateBtn, #deleteBtn{
+	width: 70px;
+	height: 35px;
+	font-size: 16px;
+	margin-top: 40px;
+	margin-right: 5px;
+}
+/* 
+.nav-buttons {
+	position: fixed;
+	z-index: 100;
+	top: 50%;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	padding: 0 10px;
+} */
+
+.nav-leftButton {
+	position: fixed;
+	z-index: 100;
+	top: 50%;
+	left: 15%;
+	display: flex;
+}
+
+.nav-rightButton {
+	position: fixed;
+	z-index: 100;
+	top: 50%;
+	left: 85%;
+	display: flex;
+}
+
+/* @media (max-width: 1640px) {
+    .nav-buttons {
+        visibility: hidden;
+    }
+} */
+
+@media (max-width: 800px) {
+    .nav-leftButton {
+		top: 85%;
+		left: 10%;
+    }
+    .nav-rightButton {
+		top: 85%;
+		left: 90%;
+    }
+}
+
+#detailPrevPageBtn {
+	width: 50px;
+	height: 50px;
+	font-size: 50px;
+	font-weight: 500;
+	text-align: center;
+	border-radius: 25px;
+	padding: 0 0 88px 5px;
+}
+
+#detailNextPageBtn {
+	width: 50px;
+	height: 50px;
+	font-size: 50px;
+	font-weight: 500;
+	text-align: center;
+	border-radius: 25px;
+	padding: 0 0 88px 7px;
+}
+
+#addPlusBoard {
+	width: 50px;
+	height: 50px;
+	font-size: 50px;
+	font-weight: 500;
+	text-align: center;
+	border-radius: 25px;
+	padding: 0 0 88px 7px;
+}
+
+@media (max-width: 900px) {
+    #detailPrevPageBtn {
+		width: 45px;
+		height: 35px;
+		font-size: 35px;
+		font-weight: 600;
+		border-radius: 22.5px;
+		padding: 0 0 60px 8px;		
+    }
+    #detailNextPageBtn {
+		width: 45px;
+		height: 35px;
+		font-size: 35px;
+		font-weight: 600;
+		border-radius: 22.5px;	
+		padding: 0 0 60px 10px;
+    }
+    #addPlusBoard {
+		width: 45px;
+		height: 35px;
+		font-size: 35px;
+		font-weight: 600;
+		border-radius: 22.5px;	
+		padding: 0 0 60px 9px;
+	}
+}
+

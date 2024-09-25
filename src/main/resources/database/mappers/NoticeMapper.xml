@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper	namespace="com.picmap.app.notice.NoticeDAO">
+
+	<select id="getMemberDTO" parameterType="MemberDTO" resultType="MemberDTO">
+		SELECT MEMBERID, MEMBERNAME, MEMBERNICKNAME, PROFILEPATH FROM MEMBER WHERE MEMBERNUM=#{boardNum}
+	</select>
+	
+	<select id="getList" resultType="NoticeDTO" parameterType="Pager">
+		SELECT B.*
+		FROM	(
+			SELECT A.*, ROWNUM R
+			FROM	(
+				SELECT N.*, M.MEMBERID, M.MEMBERNICKNAME
+				FROM NOTICE N
+					 LEFT JOIN
+					 MEMBER M
+					 ON N.MEMBERNUM = M.MEMBERNUM
+				ORDER BY BOARDNUM DESC
+				)A
+			)B
+		WHERE R BETWEEN #{startRow} AND #{lastRow}
+	</select>
+	
+	<select id="getTotalCount" parameterType="Pager" resultType="java.lang.Long">
+		SELECT COUNT(BOARDNUM) FROM NOTICE
+	</select>
+	
+	<insert id="add" parameterType="BoardDTO">
+  		INSERT INTO NOTICE
+  		VALUES
+  		(BOARDNUM_SEQ.NEXTVAL, #{memberNum}, #{boardTitle}, #{boardContent}, SYSDATE, SYSDATE, 0, #{fileName, jdbcType=VARCHAR})
+	</insert>
+
+	<select id="getDetail" parameterType="NoticeDTO" resultType="NoticeDTO">
+		SELECT	* 
+		FROM	NOTICE
+		WHERE	BOARDNUM = #{boardNum}
+	</select>
+
+	<update id="update" parameterType="BoardDTO">
+		UPDATE NOTICE
+		SET BOARDTITLE = #{boardTitle},
+			BOARDCONTENT = #{boardContent},
+			UPDATEDATE = SYSDATE,
+			FILENAME = #{fileName, jdbcType=VARCHAR}
+		WHERE BOARDNUM = #{boardNum}
+	</update>
+
+
+	<delete id="deleteHeart" parameterType="BoardDTO">
+		DELETE 	NOTICEHEART
+		WHERE 	BOARDNUM = #{boardNum}
+	</delete>
+
+	<delete id="delete" parameterType="BoardDTO">
+		DELETE 	NOTICE
+		WHERE	BOARDNUM = #{boardNum}
+	</delete>
+
+	<update id="hit" parameterType="NoticeDTO">
+		UPDATE NOTICE
+		SET HIT = HIT + 1
+		WHERE BOARDNUM = #{boardNum}
+	</update>
+
+
+
+
+</mapper>
+

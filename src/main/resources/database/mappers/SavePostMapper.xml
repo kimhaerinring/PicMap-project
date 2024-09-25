@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- mapper는 테이블 별로 하나씩 만들 거다. namespace는 중복되면 안된다. -->
+<mapper namespace="com.picmap.app.savepost.SavePostDAO">
+
+	<select id="savePostCheck" parameterType="SavePostDTO" resultType="java.lang.Long">
+		SELECT	SAVEPOSTNUM
+		FROM	SAVEPOST
+		WHERE	BOARDNUM = #{boardNum} AND MEMBERNUM = #{memberNum}
+	</select>
+	
+	<insert id="savePost" parameterType="SavePostDTO">
+		INSERT	INTO SAVEPOST
+		VALUES 	(SAVEPOSTNUM_SEQ.NEXTVAL, #{memberNum}, #{boardNum})
+	</insert>
+	
+	<delete id="delSavedPost" parameterType="SavePostDTO">
+		DELETE 	SAVEPOST
+		WHERE	SAVEPOSTNUM = #{savePostNum}
+	</delete>
+	<select id="savePostList" resultType="TravelDTO" parameterType="java.util.Map">
+SELECT 	*
+		FROM 	(
+			SELECT  ROWNUM R, SM.*,M2.MEMBERID, M2.MEMBERNICKNAME 
+			FROM 	(
+				SELECT T.*
+				FROM SAVEPOST S
+					 LEFT JOIN
+					 MEMBER M
+					 ON S.MEMBERNUM = M.MEMBERNUM
+					 LEFT JOIN
+					TRAVEL T
+					ON T.BOARDNUM = S.BOARDNUM
+				WHERE   S.MEMBERNUM=#{memberDTO.memberNum}
+				ORDER BY SAVEPOSTNUM DESC
+			)SM
+			LEFT JOIN
+			MEMBER M2
+			 ON SM.MEMBERNUM = M2.MEMBERNUM
+		)
+		WHERE R BETWEEN #{scroller.startRow} AND #{scroller.endRow} 
+	</select>
+	
+	
+	
+	
+</mapper>

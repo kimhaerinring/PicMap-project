@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.picmap.app.member.MemberDAO" >
+  
+  <select id="kakaoMemberJoinCheck" parameterType="java.lang.String" resultType="MemberDTO">
+  	SELECT	MEMBERNUM
+  	FROM		KAKAOMEMBER
+  	WHERE	KAKAOMEMBERID = #{KAKAOMEMBERID}
+  </select>
+  
+  <insert id="kakaoMemberJoin" parameterType="MemberDTO">
+  	INSERT INTO KAKAOMEMBER
+  	VALUES (KAKAOMEMBER_SEQ.NEXTVAL, #{memberId}, #{memberNum})
+  </insert>
+  
+  <delete id="kakaoDelete" parameterType="MemberDTO">
+  	DELETE KAKAOMEMBER WHERE MEMBERNUM=#{memberNum}
+  </delete>
+  
+  
+  <select id="idCheck" parameterType="MemberDTO" resultType="java.lang.Integer">
+  		SELECT	COUNT(MEMBERID)
+  		FROM	MEMBER
+  		WHERE MEMBERID = #{memberId} 
+  	</select>
+  	
+  	<select id="phoneCheck" parameterType="MemberDTO" resultType="java.lang.Integer">
+  		SELECT	COUNT(MEMBERPHONE)
+  		FROM	MEMBER
+  		WHERE MEMBERPHONE = #{memberPhone} 
+  	</select>
+  	
+  	
+  	  <select id="memberNickName" parameterType="MemberDTO" resultType="java.lang.Integer">
+  		SELECT	COUNT(MEMBERNICKNAME)
+  		FROM	MEMBER
+  		WHERE	MEMBERNICKNAME = #{memberNickName}
+  	</select>
+  	
+   	<insert id="join" parameterType="MemberDTO">
+   	
+   		INSERT INTO MEMBER 
+   		VALUES(MEMBER_SEQ.NEXTVAL,#{memberId},#{memberName},#{memberPassword},#{memberBirth},#{memberNickName},#{memberEmail},#{memberPhone},#{profilePath})
+   	
+   	</insert>
+   
+   <select id="login" parameterType="MemberDTO" resultType="MemberDTO">
+   	
+   	SELECT MEMBERNUM,MEMBERID,MEMBERPASSWORD,MEMBERNAME ,MEMBERNICKNAME, PROFILEPATH
+   	FROM MEMBER 
+   		WHERE MEMBERID= #{memberId} 
+   
+   </select>
+   
+	<update id="update" parameterType="MemberDTO" >
+		UPDATE MEMBER SET MEMBERNAME=#{memberName} ,MEMBERBIRTH=#{memberBirth},
+		MEMBERNICKNAME=#{memberNickName},MEMBEREMAIL=#{memberEmail},MEMBERPHONE=#{memberPhone},MEMBERPASSWORD=#{memberPassword}
+			WHERE MEMBERID = #{memberId} 
+	</update>
+	
+  <select id="detail" parameterType="MemberDTO"   resultType="MemberDTO">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBERNUM = #{memberNum} 
+</select>
+		
+ 	<update id="delete" parameterType="MemberDTO">
+UPDATE MEMBER SET  MEMBERNICKNAME ='탈퇴한 회원', MEMBEREMAIL =NULL, MEMBERPHONE =NULL,PROFILEPATH =NULL, 
+MEMBERBIRTH =TO_DATE('1900/01/01', 'YYYY-MM-DD'),MEMBERID =#{memberId},MEMBERNAME =#{memberName},MEMBERPASSWORD =#{memberPassword}
+WHERE MEMBERNUM = #{memberNum}
+	</update> 
+	
+	<insert id="follow" parameterType="FollowDTO"	>
+		INSERT INTO FOLLOW
+		VALUES(FOLLOW_SEQ.NEXTVAL,#{fromFollow},#{toFollow})
+	</insert>
+	
+	<select id="countFromFollow" parameterType="MemberDTO"  resultType="java.lang.Long">
+	SELECT COUNT(FOLLOWNUM) FROM FOLLOW  WHERE FROMFOLLOW =#{memberNum}
+	</select>
+	
+	<select id="countToFollow" parameterType="MemberDTO"  resultType="java.lang.Long">
+	SELECT COUNT(FOLLOWNUM) FROM FOLLOW  WHERE TOFOLLOW =#{memberNum}
+	</select>
+	
+	<select id="followCheck" parameterType="FollowDTO" resultType="java.lang.Integer">
+	SELECT COUNT(FOLLOWNUM) FROM FOLLOW WHERE FROMFOLLOW = #{fromFollow} AND TOFOLLOW = #{toFollow}
+	</select>
+		<delete id="followDelete" parameterType="FollowDTO">
+		DELETE FOLLOW 	WHERE FROMFOLLOW = #{fromFollow} AND TOFOLLOW = #{toFollow}
+	</delete> 
+	<delete id="memberFollowDelete" parameterType="MemberDTO">
+		DELETE FOLLOW
+		WHERE FROMFOLLOW = #{memberNum} OR TOFOLLOW = #{memberNum}
+	</delete>
+	<select id="fromFollowList" resultType="MemberDTO" parameterType="java.util.Map">
+	SELECT *
+FROM
+(
+	SELECT ROWNUM R, M.*
+	FROM
+	(
+		SELECT  *
+		FROM MEMBER
+	) M
+	WHERE MEMBERNUM IN
+	(
+		SELECT FROMFOLLOW
+		FROM FOLLOW
+		WHERE TOFOLLOW =#{followDTO.toFollow}
+	)
+)
+WHERE R BETWEEN #{scroller.startRow} AND #{scroller.endRow}
+	
+</select>
+		<select id="toFollowList" resultType="MemberDTO" parameterType="java.lang.Long">
+		
+			SELECT *
+FROM
+(
+	SELECT ROWNUM R, M.*
+	FROM
+	(
+		SELECT  *
+		FROM
+		(
+		SELECT *
+		FROM MEMBER
+		)
+	) M
+	WHERE MEMBERNUM IN
+	(
+		SELECT TOFOLLOW
+		FROM FOLLOW
+		WHERE FROMFOLLOW =#{followDTO.fromFollow}
+	)
+)
+WHERE R BETWEEN #{scroller.startRow} AND #{scroller.endRow}
+
+</select>
+<select id="getList" resultType="TravelDTO" parameterType="java.util.Map">
+SELECT 	*
+		FROM 	(
+			SELECT  ROWNUM R, TM.*
+			FROM 	(
+				SELECT T.*, M.MEMBERID, M.MEMBERNICKNAME 
+				FROM TRAVEL T
+					 LEFT JOIN
+					 MEMBER M
+					 ON T.MEMBERNUM = M.MEMBERNUM
+				WHERE PARENTBOARD IS NULL AND  M.MEMBERNUM=#{memberDTO.memberNum}
+				ORDER BY BOARDNUM DESC
+			)TM
+		)
+		WHERE R BETWEEN #{scroller.startRow} AND #{scroller.endRow} 
+	</select>
+
+
+    <!-- 회원의 게시글 수를 가져오는 SQL 쿼리 -->
+    <select id="getPostCountByMember" parameterType="MemberDTO" resultType="java.lang.Long">
+    	
+	SELECT COUNT(BOARDNUM) 
+        FROM  TRAVEL
+        WHERE MEMBERNUM = #{memberNum}
+    </select> 
+    
+<select id="getSavePostCountByMember" parameterType="MemberDTO" resultType="java.lang.Long">
+        SELECT COUNT(SAVEPOSTNUM) 
+        FROM  SAVEPOST
+        WHERE MEMBERNUM = #{memberNum}
+    </select> 
+	 <select id="findID" parameterType="MemberDTO" resultType="MemberDTO">
+        SELECT MEMBERID ,MEMBERNAME
+        FROM MEMBER
+        WHERE MEMBERNAME = #{memberName} 
+        AND MEMBERPHONE = #{memberPhone} 
+ 
+    </select>
+	<select id="findPassword" parameterType="MemberDTO" resultType="MemberDTO">
+        SELECT	SUBSTR(MEMBERPASSWORD, 1, 3)||LPAD(SUBSTR(MEMBERPASSWORD, LENGTH(MEMBERPASSWORD)), LENGTH(MEMBERPASSWORD)-3, '*') as "MEMBERPASSWORD", MEMBERID
+        FROM 	MEMBER
+        WHERE 	MEMBERNAME = #{memberName} 
+        		AND MEMBERID = #{memberId} 
+         		AND MEMBERPHONE = #{memberPhone} 
+    </select>
+<update id="proFileUpdate" parameterType="MemberDTO">
+    UPDATE MEMBER 
+    SET PROFILEPATH = #{profilePath, jdbcType=VARCHAR}
+    WHERE MEMBERNUM = #{memberNum}
+ 
+</update>
+	
+  </mapper>
